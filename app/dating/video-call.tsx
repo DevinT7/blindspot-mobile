@@ -14,6 +14,9 @@ const MOCK_PARTNERS = [
   'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&q=80', // Guy 2
 ];
 
+// 2. Mock Shared Interests (The new feature)
+const MOCK_SHARED_INTERESTS = ["🐕 Dogs", "🍕 Foodie"];
+
 const QUESTIONS = [
   "What's a controversially simple food you love?",
   "What is the worst advice you've ever taken?",
@@ -64,7 +67,7 @@ export default function VideoCallScreen() {
     setCurrentQuestion(random);
   };
 
-  // 2. Logic to Spawn Floating Emojis
+  // Logic to Spawn Floating Emojis
   const triggerReaction = (emoji: string) => {
     const id = emojiIdCounter.current++;
     const anim = new Animated.Value(0);
@@ -100,13 +103,10 @@ export default function VideoCallScreen() {
           resizeMode="cover" 
         />
         
-        {/* THE BLIND FILTER: 
-            Lower intensity allows silhouettes to be seen. 
-            Try changing intensity={60} for more visibility or {95} for less. 
-        */}
+        {/* THE BLIND FILTER */}
         <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
         
-        {/* Optional: Dark overlay to make text readable */}
+        {/* Dark overlay to make text readable */}
         <View style={styles.dimOverlay} />
       </View>
 
@@ -139,11 +139,24 @@ export default function VideoCallScreen() {
       {/* --- LAYER 3: UI OVERLAY --- */}
       <View style={styles.uiLayer}>
         
-        {/* Header: Timer */}
+        {/* Top Section */}
         <View style={styles.header}>
+          {/* Timer */}
           <View style={[styles.timerTag, timeLeft < 30 && styles.timerUrgent]}>
             <Ionicons name="time-outline" size={16} color="white" style={{marginRight: 4}}/>
             <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
+          </View>
+
+          {/* --- NEW SHARED VIBES ALERT --- */}
+          <View style={styles.sharedVibesContainer}>
+            <Text style={styles.sharedVibesLabel}>You both like:</Text>
+            <View style={styles.tagRow}>
+              {MOCK_SHARED_INTERESTS.map((tag, index) => (
+                <View key={index} style={styles.matchTag}>
+                  <Text style={styles.matchTagText}>{tag}</Text>
+                </View>
+              ))}
+            </View>
           </View>
         </View>
 
@@ -193,7 +206,7 @@ const styles = StyleSheet.create({
   // Video & Background
   videoContainer: { flex: 1 },
   fullScreenImage: { width: '100%', height: '100%' },
-  dimOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.3)' }, // Darkens slightly
+  dimOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.3)' }, 
 
   // Floating Emojis
   reactionContainer: { ...StyleSheet.absoluteFillObject, justifyContent: 'flex-end', paddingBottom: 150 },
@@ -212,6 +225,34 @@ const styles = StyleSheet.create({
   },
   timerUrgent: { backgroundColor: 'rgba(233, 30, 99, 0.8)', borderColor: '#E91E63' },
   timerText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+
+  // --- NEW STYLES FOR SHARED VIBES ---
+  sharedVibesContainer: {
+    alignItems: 'center',
+    marginTop: 20, 
+  },
+  sharedVibesLabel: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 12,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  tagRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  matchTag: {
+    backgroundColor: 'rgba(233, 30, 99, 0.8)', // Brand Pink
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  matchTagText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
 
   // Footer
   footer: { gap: 15 },

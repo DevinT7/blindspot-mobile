@@ -5,7 +5,7 @@ import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react
 // Mock Data: People you've already matched with
 const MATCHES = [
   { id: '1', name: 'Michael', message: 'That food question was tricky! 😂', time: '2m ago', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d' },
-  { id: '2', name: 'Sally', message: 'So when are we doing round 2?', time: '1h ago', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' },
+  { id: '2', name: 'Sally', message: 'I like your vibe!', time: '1h ago', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' },
   { id: '3', name: 'Sam', message: 'Hey! Nice meeting you.', time: '1d ago', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e' },
 ];
 
@@ -13,7 +13,16 @@ export default function MatchesScreen() {
   const router = useRouter();
 
   const renderItem = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.chatRow} onPress={() => console.log('Open Chat', item.id)}>
+    <TouchableOpacity 
+      style={styles.chatRow} 
+      onPress={() => router.push({
+        pathname: '/dating/chat',
+        params: { 
+          partnerName: item.name, 
+          avatar: item.avatar 
+        }
+      })}
+    >
       <Image source={{ uri: item.avatar }} style={styles.avatar} />
       <View style={styles.chatContent}>
         <View style={styles.chatHeader}>

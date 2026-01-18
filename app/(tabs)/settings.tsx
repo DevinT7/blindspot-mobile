@@ -14,9 +14,21 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+// Make sure this path matches your project structure
+import { useAuthStore } from '../../store/authStore';
+
+// List of available interest tags for "My Vibes"
+const AVAILABLE_TAGS = [
+  "🎵 Music", "✈️ Travel", "🍕 Foodie", "🎮 Gaming", 
+  "🏋️ Fitness", "📚 Reading", "🎨 Art", "🐕 Dogs", 
+  "☕ Coffee", "🎬 Movies", "📸 Photo", "💃 Dancing"
+];
 
 export default function SettingsScreen() {
   const router = useRouter();
+  
+  // Access the logout action from your store
+  const logout = useAuthStore((state) => state.logout);
 
   // --- STATE MANAGEMENT ---
   const [isEditModalVisible, setEditModalVisible] = useState(false);
@@ -25,7 +37,8 @@ export default function SettingsScreen() {
   const [profile, setProfile] = useState({
     name: 'Alex',
     age: '24',
-    avatar: 'https://i.pravatar.cc/150?u=myprofile', // Default placeholder
+    avatar: 'https://i.pravatar.cc/150?u=myprofile', 
+    interests: ["🎵 Music", "🍕 Foodie", "🐕 Dogs"] // Default selection
   });
 
   // Settings Data
@@ -40,7 +53,6 @@ export default function SettingsScreen() {
 
   // 1. Pick Image from Gallery
   const pickImage = async () => {
-    // Request permission
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission needed', 'We need access to your photos to update your profile!');
@@ -59,7 +71,20 @@ export default function SettingsScreen() {
     }
   };
 
-  // 2. Cycle Logic for Distance (Mock interaction)
+  // 2. Toggle Interest Logic (Max 5)
+  const toggleInterest = (tag: string) => {
+    if (profile.interests.includes(tag)) {
+      setProfile(prev => ({ ...prev, interests: prev.interests.filter(i => i !== tag) }));
+    } else {
+      if (profile.interests.length >= 5) {
+        Alert.alert("Limit Reached", "You can only pick 5 top vibes!");
+        return;
+      }
+      setProfile(prev => ({ ...prev, interests: [...prev.interests, tag] }));
+    }
+  };
+
+  // 3. Cycle Logic for Distance (Mock interaction)
   const cycleDistance = () => {
     const options = [5, 10, 25, 50, 100];
     const currentIndex = options.indexOf(settings.distance);
@@ -67,7 +92,7 @@ export default function SettingsScreen() {
     setSettings({ ...settings, distance: options[nextIndex] });
   };
 
-  // 3. Cycle Logic for Age (Mock interaction)
+  // 4. Cycle Logic for Age (Mock interaction)
   const cycleAgeRange = () => {
     const options = ['18 - 24', '21 - 28', '25 - 35', '30 - 45', '40+'];
     const currentIndex = options.indexOf(settings.ageRange);
@@ -77,17 +102,27 @@ export default function SettingsScreen() {
 
   const handleSaveProfile = () => {
     setEditModalVisible(false);
-    // Here you would typically make an API call to save to backend
+    // In a real app, you would save this to your backend here
     Alert.alert('Success', 'Profile updated successfully!');
   };
 
+  // 5. Logout Logic (Fixed)
   const handleLogout = () => {
     Alert.alert(
       "Log Out",
       "Are you sure you want to log out?",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Log Out", style: "destructive", onPress: () => router.replace('/') } // Go back to Login
+        { 
+          text: "Log Out", 
+          style: "destructive", 
+          onPress: async () => {
+            // 1. Clear the auth state
+            await logout(); 
+            // 2. Navigate back to the login screen
+            router.replace('/(auth)/login'); 
+          } 
+        } 
       ]
     );
   };
@@ -105,6 +140,27 @@ export default function SettingsScreen() {
             <TouchableOpacity onPress={() => setEditModalVisible(true)}>
               <Text style={styles.editLink}>Edit Profile</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* --- MY VIBES SECTION --- */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>My Vibes (Select up to 5)</Text>
+          <View style={styles.tagsContainer}>
+            {AVAILABLE_TAGS.map((tag) => {
+              const isSelected = profile.interests.includes(tag);
+              return (
+                <TouchableOpacity 
+                  key={tag} 
+                  style={[styles.tagChip, isSelected && styles.tagChipSelected]}
+                  onPress={() => toggleInterest(tag)}
+                >
+                  <Text style={[styles.tagText, isSelected && styles.tagTextSelected]}>
+                    {tag}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
@@ -151,7 +207,7 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* --- LOGOUT --- */}
+        {/* --- LOGOUT BUTTON --- */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
@@ -175,7 +231,7 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Edit Avatar */}
+            {/* Avatar Edit */}
             <TouchableOpacity style={styles.avatarEditWrapper} onPress={pickImage}>
               <Image source={{ uri: profile.avatar }} style={styles.modalAvatar} />
               <View style={styles.cameraIcon}>
@@ -184,7 +240,7 @@ export default function SettingsScreen() {
             </TouchableOpacity>
             <Text style={styles.avatarHint}>Tap to change photo</Text>
 
-            {/* Edit Fields */}
+            {/* Text Inputs */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Name</Text>
               <TextInput 
@@ -227,9 +283,21 @@ const styles = StyleSheet.create({
   name: { fontSize: 20, fontWeight: 'bold', color: '#000' },
   editLink: { color: '#E91E63', fontWeight: '600', marginTop: 4, fontSize: 14 },
 
-  // Sections
+  // Section Headers
   section: { marginBottom: 30 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: '#333' },
+
+  // Vibes / Tags
+  tagsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  tagChip: { 
+    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 25, 
+    backgroundColor: '#f0f0f0', borderWidth: 1, borderColor: '#eee' 
+  },
+  tagChipSelected: { backgroundColor: '#E91E63', borderColor: '#E91E63' },
+  tagText: { fontSize: 14, color: '#555' },
+  tagTextSelected: { color: '#fff', fontWeight: 'bold' },
+
+  // Settings Rows
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, paddingVertical: 5 },
   label: { fontSize: 16, color: '#333' },
   valueContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },

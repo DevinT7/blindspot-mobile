@@ -20,15 +20,27 @@ export default function PostCallScreen() {
 
     setTimeout(() => {
       // Randomly decide if they liked you back (50/50 chance)
+      // Tip: Change (> 0.5) to (> 0) if you want to force a match every time for testing
       const isMatch = Math.random() > 0.5;
       setResult(isMatch ? 'match' : 'miss');
       setViewState('result');
     }, 2500); // 2.5 second fake suspense delay
   };
 
-  const handleExit = () => {
-    // Go back to the main tabs (Dashboard)
+  // Navigate back to the main dashboard
+  const handleBackToDeck = () => {
     router.replace('/(tabs)');
+  };
+
+  // Navigate to the simulated Chat Screen
+  const handleGoToChat = () => {
+    router.push({
+      pathname: '/dating/chat',
+      params: { 
+        partnerName: 'Alex', 
+        avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&q=80' 
+      }
+    });
   };
 
   return (
@@ -66,7 +78,9 @@ export default function PostCallScreen() {
             <>
               <Text style={styles.matchTitle}>IT'S A MATCH!</Text>
               <Text style={styles.matchDesc}>Profile Unlocked. You can now chat.</Text>
-              <TouchableOpacity style={styles.actionBtn} onPress={handleExit}>
+              
+              {/* UPDATED: Navigates to Chat */}
+              <TouchableOpacity style={styles.actionBtn} onPress={handleGoToChat}>
                 <Text style={styles.actionBtnText}>Go to Chat 💬</Text>
               </TouchableOpacity>
             </>
@@ -74,7 +88,9 @@ export default function PostCallScreen() {
             <>
               <Text style={styles.missTitle}>Not a Match</Text>
               <Text style={styles.missDesc}>They passed or the feeling wasn't mutual.</Text>
-              <TouchableOpacity style={[styles.actionBtn, {backgroundColor: '#333'}]} onPress={handleExit}>
+              
+              {/* UPDATED: Navigates back to Home */}
+              <TouchableOpacity style={[styles.actionBtn, {backgroundColor: '#333'}]} onPress={handleBackToDeck}>
                 <Text style={styles.actionBtnText}>Back to Deck 🏠</Text>
               </TouchableOpacity>
             </>
